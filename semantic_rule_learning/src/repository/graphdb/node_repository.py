@@ -1,7 +1,7 @@
 import json
 
-from src.repository.graphdb.BaseRepository import BaseRepository
-from src.util.GraphUtil import *
+from src.repository.graphdb.base_repository import BaseRepository
+from src.util.graph_util import *
 
 
 class NodeRepository(BaseRepository):
@@ -22,7 +22,7 @@ class NodeRepository(BaseRepository):
     def add_sensor(self, object_id, sensor_type):
         with self.driver.session() as session:
             query = "match (n {name: $id})\n" \
-                    "MERGE (s:Sensor {id: $sensor_id, type: $type})-[:Placed_In]->(n)"
+                    "MERGE (s:Sensor {name: $sensor_id, type: 'Sensor', measurement_aspect: $type})-[:Placed_In]->(n)"
             session.run(query, {
                 "id": object_id.replace('s_', '', 1),
                 "sensor_id": object_id,

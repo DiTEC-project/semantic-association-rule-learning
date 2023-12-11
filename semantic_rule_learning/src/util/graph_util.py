@@ -5,6 +5,7 @@ are placed under the "repository" package.
 """
 import itertools
 
+
 def get_first_neighbor_with_relations(graph, node):
     """
     Get first neighbors of a given node and the edges in between them
@@ -12,10 +13,10 @@ def get_first_neighbor_with_relations(graph, node):
     :param node:
     :return:
     """
-    edges = list(graph.edges(node['properties']['id'], data=True))
+    edges = list(graph.edges(node['properties']['name'], data=True))
     neighbors = []
     for (current_node, neighbor, edge_props) in edges:
-        if not graph.nodes[neighbor]['properties']['id'].startswith('s_'):
+        if not graph.nodes[neighbor]['properties']['name'].startswith('s_'):
             neighbors.append({
                 'neighbor': graph.nodes[neighbor],
                 'edge_props': edge_props
@@ -33,16 +34,18 @@ def get_topology(node, neighbor_list):
     """
     topology = []
     for edge in neighbor_list:
-        topology.append(
-            node['labels'] + "_" + edge['neighbor']['labels'] + "_" +
-            edge['edge_props']['type'])
+        relation = node['labels'] + "_" + edge['neighbor']['labels'] + "_" + edge['edge_props']['type']
+        index = 2
+        if relation in topology:
+            temp = relation
+            while relation in topology:
+                relation = temp + '_' + str(index)
+                index += 1
+            topology.append(relation)
+        else:
+            topology.append(relation)
 
-    powerset = []
-    for L in range(1, len(topology) + 1):
-        for subset in itertools.combinations(topology, L):
-            powerset.append(str(subset))
-
-    return powerset
+    return topology
 
 
 def get_attributes(subgraph):
@@ -60,3 +63,19 @@ def get_attributes(subgraph):
                 unique_ids.append(edge['neighbor']['properties']['id'])
 
     return attributes
+
+
+def get_unique_values(graph, attribute):
+    """
+    Returns a list of unique values in the graph, for a given attribute
+    :param graph: a graph in NetworkX format
+    :para attribute: key of an attribute in the graph
+    :return: a lit of unique values for the given attribute in the graph
+    """
+    unique_values = []
+    for node_id in graph.nodes:
+        if attribute in graph.nodes[node_id]['properties']:
+            if graph.nodes[node_id]['properties'][attribute] not in unique_values:
+                unique_values.append(graph.nodes[node_id]['properties'][attribute])
+
+    return unique_values

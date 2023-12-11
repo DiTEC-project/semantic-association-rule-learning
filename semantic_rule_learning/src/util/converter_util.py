@@ -35,8 +35,10 @@ def neo4j_to_networkx(neo4j_graph):
     networkx_graph = nx.MultiDiGraph()
 
     for row in neo4j_graph:
-        networkx_graph.add_node(row['s']['id'], labels=row['s']['type'], properties=row['s'])
-        networkx_graph.add_node(row['d']['id'], labels=row['d']['type'], properties=row['d'])
-        networkx_graph.add_edge(row['s']['id'], row['d']['id'], type=row['s']['type'] + "_" + row['d']['type'])
+        source_id = row['s']['name'] if 'name' in row['s'] else row['s']['id']
+        dest_id = row['d']['name'] if 'name' in row['d'] else row['d']['id']
+        networkx_graph.add_node(source_id, labels=row['s']['type'], properties=row['s'])
+        networkx_graph.add_node(dest_id, labels=row['d']['type'], properties=row['d'])
+        networkx_graph.add_edge(source_id, dest_id, type=row['s']['type'] + "_" + row['d']['type'])
 
     return networkx_graph

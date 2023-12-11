@@ -1,6 +1,7 @@
 """
 Includes utility functions for processing transaction(s)
 """
+from src.util.graph_util import *
 
 
 def get_transactions_by_subgraph(transactions, subgraph):

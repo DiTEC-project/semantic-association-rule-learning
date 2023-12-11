@@ -26,7 +26,7 @@ class SensorDataRepository:
     def get_data_by_sensor(self, object_id):
         with psycopg2.connect(self.connection) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT * FROM sensordata where id = %s", (object_id,))
+                cur.execute("SELECT * FROM sensordata where name = %s", (object_id,))
                 result = cur.fetchall()
                 return result
 
@@ -34,9 +34,9 @@ class SensorDataRepository:
         with psycopg2.connect(self.connection) as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT time_bucket('%s minutes', time) AS time_interval, "
-                            "round(cast(avg(value) as numeric), %s) as average, id "
+                            "round(cast(avg(value) as numeric), %s) as average, name "
                             "FROM sensordata s "
-                            "GROUP BY time_interval, id "
+                            "GROUP BY time_interval, name "
                             "ORDER BY time_interval", (time_interval_in_minutes, precision))
                 result = cur.fetchall()
                 return result
@@ -44,6 +44,6 @@ class SensorDataRepository:
     def get_unique_sensor_ids(self):
         with psycopg2.connect(self.connection) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT distinct id, sensor_type from sensordata")
+                cur.execute("SELECT distinct name, sensor_type from sensordata")
                 result = cur.fetchall()
                 return result
