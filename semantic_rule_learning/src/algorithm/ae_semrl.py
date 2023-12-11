@@ -47,11 +47,12 @@ class AESemRL:
         kg_model_weights = pretrained_kg_model.encoder[0].weight
 
         # train the main AE with the pretrained values above and the sensor data
-        self.model = AutoEncoderMain(len(self.input_vectors['sensor'][0]), kg_model_weights)
-        self.model = self.train_main_model(self.model, self.input_vectors['sensor'])
+        self.model = AutoEncoderMain(len(self.input_vectors['sensor'][0]), len(self.input_vectors['numerical'][0]),
+                                     cat_model_weights, kg_model_weights)
+        self.model = self.train_main_model(self.model, self.input_vectors)
 
     @staticmethod
-    def train_main_model(model, vectors, loss_function=torch.nn.CrossEntropyLoss(), lr=1e-4, epochs=3):
+    def train_main_model(model, vectors, loss_function=torch.nn.CrossEntropyLoss(), lr=1e-4, epochs=1):
         cat_vectors = vectors['categorical']
         num_vectors = vectors['numerical']
         transaction_vectors = vectors['sensor']
@@ -95,7 +96,7 @@ class AESemRL:
 
                 reconstructed = model(cat_vector, num_vector)
 
-                loss = loss_function(reconstructed, torch.DoubleTensor(cat_vectors[index] + num_vectors[index]))
+                loss = loss_function(reconstructed, torch.DoubleTensor(num_vectors[index] + cat_vectors[index]))
 
                 optimizer.zero_grad()
                 loss.backward()

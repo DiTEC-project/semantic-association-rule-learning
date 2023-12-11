@@ -10,13 +10,17 @@ class AutoEncoderKG(nn.Module):
     """
 
     def __init__(self, num_feature_size, cat_model_weights):
+        """
+        :param num_feature_size: size of the numerical features in the knowledge graph
+        :param cat_model_weights: pretrained weights for the categorical features in the knowledge graph
+        """
         super().__init__()
         self.num_feature_size = num_feature_size
         self.cat_model_weights = cat_model_weights
         output_layer = nn.Softmax()
 
         reduced_cat_feature_size = int(cat_model_weights.shape[1] * 3 / 4)
-        self.cat = nn.Sequential(
+        self.encoder_cat = nn.Sequential(
             nn.Linear(cat_model_weights.shape[1], reduced_cat_feature_size),
             output_layer,
         )
@@ -31,15 +35,15 @@ class AutoEncoderKG(nn.Module):
             output_layer
         )
 
-        self.de_cat = nn.Sequential(
+        self.decoder_cat = nn.Sequential(
             nn.Linear(reduced_cat_feature_size, cat_model_weights.shape[1]),
             output_layer,
         )
 
-        self.cat[0].weight = cat_model_weights
+        self.encoder_cat[0].weight = cat_model_weights
         self.encoder.apply(self.init_weights)
         self.decoder.apply(self.init_weights)
-        self.de_cat.apply(self.init_weights)
+        self.decoder_cat.apply(self.init_weights)
 
     @staticmethod
     def init_weights(m):
@@ -62,13 +66,13 @@ class AutoEncoderKG(nn.Module):
         self.decoder.eval()
 
     def forward(self, cat_vector, num_vector):
-        x = self.cat(cat_vector)
-        x = self.encoder(torch.FloatTensor(x.detach().numpy().tolist() + num_vector.detach().numpy().tolist()))
+        x = self.encoder_cat(cat_vector)
+        x = self.encoder(torch.FloatTensor(num_vector.detach().numpy().tolist() + x.detach().numpy().tolist()))
         x = self.decoder(x)
 
         de_cat_input = x.data[self.num_feature_size:]
         partial_output = x.data[:self.num_feature_size]
-        x = self.de_cat(de_cat_input)
+        x = self.decoder_cat(de_cat_input)
         output = torch.cat((partial_output, x))
 
         return output

@@ -10,6 +10,9 @@ class AutoEncoderCat(nn.Module):
     """
 
     def __init__(self, data_size):
+        """
+        :param data_size: size of the categorical features in the knowledge graph, after one-hot encoding
+        """
         super().__init__()
         self.data_size = data_size
         output_layer = nn.Softmax()
