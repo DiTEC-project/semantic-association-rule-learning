@@ -8,62 +8,56 @@ class AutoEncoderMain(nn.Module):
     The main autoencoder that is used to create semantic association rules
     """
 
-    def __init__(self, transactions_size, num_feature_size, cat_model_weights, kg_model_weights):
+    def __init__(self, transactions_size, num_feature_size, kg_model):
         """
         :param transactions_size: size of the transaction list (sensor measurements)
-        :param cat_model_weights: pretrained weights for the categorical features in the knowledge graph
-        :param kg_model_weights: pretrained weights for the numerical AND categorical features in the knowledge graph
+        :param kg_model: pretrained model for the numerical AND categorical features in the knowledge graph
         """
         super().__init__()
         self.transactions_size = transactions_size
         self.num_feature_size = num_feature_size
-        self.cat_model_weights = cat_model_weights
-        self.kg_model_weights = kg_model_weights
+        self.cat_model_weights = kg_model.encoder_cat[0].weight
+        self.kg_model_weights = kg_model.encoder[0].weight
+        self.cat_model_biases = kg_model.encoder_cat[0].bias
+        self.kg_model_biases = kg_model.encoder[0].bias
 
-        output_layer = nn.Softmax()
-
-        reduced_cat_feature_size = int(cat_model_weights.shape[1] * 3 / 4)
+        reduced_cat_feature_size = int(self.cat_model_weights.shape[1] * 3 / 4)
         self.encoder_cat = nn.Sequential(
-            nn.Linear(cat_model_weights.shape[1], reduced_cat_feature_size),
-            output_layer,
+            nn.Linear(self.cat_model_weights.shape[1], reduced_cat_feature_size)
         )
 
-        reduced_num_feature_size = int(kg_model_weights.shape[1] * 3 / 4)
+        reduced_num_feature_size = int(self.kg_model_weights.shape[1] * 3 / 4)
         self.encoder_kg = nn.Sequential(
-            nn.Linear(kg_model_weights.shape[1], reduced_num_feature_size),
-            output_layer,
+            nn.Linear(self.kg_model_weights.shape[1], reduced_num_feature_size),
+            nn.Tanh(),
         )
 
         encoder_input_size = self.transactions_size + reduced_num_feature_size
         self.encoder = nn.Sequential(
             nn.Linear(encoder_input_size, int(encoder_input_size * 3 / 4)),
-            output_layer,
             nn.Linear(int(encoder_input_size * 3 / 4), int(encoder_input_size * 2 / 4)),
-            output_layer,
             nn.Linear(int(encoder_input_size * 2 / 4), int(encoder_input_size * 1 / 4)),
-            output_layer,
+            nn.Tanh(),
         )
 
         self.decoder = nn.Sequential(
             nn.Linear(int(encoder_input_size * 1 / 4), int(encoder_input_size * 2 / 4)),
-            output_layer,
             nn.Linear(int(encoder_input_size * 2 / 4), int(encoder_input_size * 3 / 4)),
-            output_layer,
-            nn.Linear(int(encoder_input_size * 3 / 4), encoder_input_size),
-            output_layer,
+            nn.Linear(int(encoder_input_size * 3 / 4), encoder_input_size)
         )
 
         self.decoder_kg = nn.Sequential(
-            nn.Linear(reduced_num_feature_size, kg_model_weights.shape[1]),
-            output_layer
+            nn.Linear(reduced_num_feature_size, self.kg_model_weights.shape[1])
         )
         self.decoder_cat = nn.Sequential(
-            nn.Linear(reduced_cat_feature_size, cat_model_weights.shape[1]),
-            output_layer,
+            nn.Linear(reduced_cat_feature_size, self.cat_model_weights.shape[1]),
+            nn.Softmax(dim=0),
         )
 
-        self.encoder_cat[0].weight = cat_model_weights
-        self.encoder_kg[0].weight = kg_model_weights
+        self.encoder_cat[0].weight = self.cat_model_weights
+        self.encoder_cat[0].bias = self.cat_model_biases
+        self.encoder_kg[0].weight = self.kg_model_weights
+        self.encoder_kg[0].bias = self.kg_model_biases
         self.encoder.apply(self.init_weights)
         self.decoder.apply(self.init_weights)
         self.decoder_kg.apply(self.init_weights)

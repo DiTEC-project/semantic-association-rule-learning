@@ -3,7 +3,7 @@ This class includes NetworkX specific graph db utility functions which are used 
 the extracted data from the graph database. All the functions interacting with the db itself directly
 are placed under the "repository" package.
 """
-import itertools
+import numpy as np
 
 
 def get_first_neighbor_with_relations(graph, node):
@@ -79,3 +79,42 @@ def get_unique_values(graph, attribute):
                 unique_values.append(graph.nodes[node_id]['properties'][attribute])
 
     return unique_values
+
+
+def discretize_numerical_attributes(knowledge_graph, numerical_attribute_list, num_bins):
+    """
+    discretize the numerical attributes inside the knowledge graph based on equal-frequency binning method
+    :param knowledge_graph: a knowledge graph in NetworkX format
+    :param numerical_attribute_list: list of numerical property keys in string
+    :param num_bins: number of bins to discretize the numerical attributes in
+    :return: the same knowledge graph with discrete (range) numeric values instead of continuous values
+    """
+    # initialize empty lists per numerical values
+    numerical_value_map = {}
+    for attribute in numerical_attribute_list:
+        numerical_value_map[attribute] = []
+
+    # collect all numerical values per attribute
+    for node_id in knowledge_graph.nodes:
+        for attribute in numerical_attribute_list:
+            if attribute in knowledge_graph.nodes[node_id]['properties']:
+                numerical_value_map[attribute].append(knowledge_graph.nodes[node_id]['properties'][attribute])
+
+    for numerical_attribute in numerical_value_map:
+        # sort values in increasing order
+        sorted_values = np.sort(numerical_value_map[numerical_attribute])
+        # define boundaries based on num_bins
+        boundaries = np.interp(np.linspace(0, len(sorted_values), num_bins + 1),
+                               np.arange(len(sorted_values)),
+                               sorted_values)
+
+        # assign each numerical value of the numerical_attribute in the knowledge_graph to one of the boundary sets
+        for node_id in knowledge_graph.nodes:
+            if numerical_attribute in knowledge_graph.nodes[node_id]['properties']:
+                attr_value = knowledge_graph.nodes[node_id]['properties'][numerical_attribute]
+                for i in range(len(boundaries) - 1):
+                    if boundaries[i] <= attr_value <= boundaries[i + 1]:
+                        knowledge_graph.nodes[node_id]['properties'][numerical_attribute] = \
+                            str(boundaries[i]) + "_" + str(boundaries[i + 1])
+                        break
+    return knowledge_graph

@@ -34,9 +34,9 @@ class SensorDataRepository:
         with psycopg2.connect(self.connection) as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT time_bucket('%s minutes', time) AS time_interval, "
-                            "round(cast(avg(value) as numeric), %s) as average, name "
+                            "round(cast(avg(value) as numeric), %s) as average, CONCAT(name, '__', sensor_type) "
                             "FROM sensordata s "
-                            "GROUP BY time_interval, name "
+                            "GROUP BY time_interval, name, sensor_type "
                             "ORDER BY time_interval", (time_interval_in_minutes, precision))
                 result = cur.fetchall()
                 return result

@@ -15,14 +15,12 @@ class AutoEncoderCat(nn.Module):
         """
         super().__init__()
         self.data_size = data_size
-        output_layer = nn.Softmax()
         self.encoder = nn.Sequential(
-            nn.Linear(self.data_size, int(self.data_size * 3 / 4)),
-            output_layer,
+            nn.Linear(self.data_size, int(self.data_size * 3 / 4))
         )
         self.decoder = nn.Sequential(
             nn.Linear(int(self.data_size * 3 / 4), self.data_size),
-            output_layer,
+            nn.Softmax(dim=0),
         )
 
         self.encoder.apply(self.init_weights)

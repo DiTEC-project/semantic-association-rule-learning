@@ -16,14 +16,16 @@ class NaiveSemRL:
     FP-Growth algorithm implementation based on mlxtend package
     """
 
-    def __init__(self, min_support, min_confidence):
+    def __init__(self, min_support, min_confidence, num_bins):
         """
         Initialize algorithm parameters
         :param min_support:
         :param min_confidence:
+        :param num_bins: number of bins to discretize numerical values into
         """
         self.min_support = min_support
         self.min_confidence = min_confidence
+        self.num_bins = num_bins
 
     def fp_growth(self, transactions):
         """
@@ -49,14 +51,14 @@ class NaiveSemRL:
 
         return formatted_rules
 
-    def learn_semantic_association_rules(self, knowledge_graph, disc_time_period):
+    def learn_semantic_association_rules(self, knowledge_graph, transactions):
         """
         Learn semantic association rules from discretized historical time series data and knowledge graph
         :param knowledge_graph: knowledge graph in NetworkX format
-        :param disc_time_period: discretization time period in minutes, the sensor data will be aggregated based on this
+        :param transactions: discrete time-series sensor data
         :return:
         """
-        enriched_transactions = naive_semrl_enrich_transactions(knowledge_graph, disc_time_period)
+        enriched_transactions = naive_semrl_enrich_transactions(knowledge_graph, transactions, self.num_bins)
         assoc_rules = self.fp_growth(enriched_transactions)
 
         return assoc_rules
