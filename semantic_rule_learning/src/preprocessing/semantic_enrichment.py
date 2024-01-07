@@ -31,7 +31,7 @@ def naive_semrl_enrich_transactions(knowledge_graph, disc_hist_time_series, num_
 
             for value_index in range(len(boundaries[sensor_type]) - 1):
                 if boundaries[sensor_type][value_index] <= measurement <= boundaries[sensor_type][value_index + 1]:
-                    measurement = str(boundaries[sensor_type][value_index]) + "__" + \
+                    measurement = str(boundaries[sensor_type][value_index]) + "-->" + \
                                   str(boundaries[sensor_type][value_index + 1])
                     break
 
@@ -39,9 +39,10 @@ def naive_semrl_enrich_transactions(knowledge_graph, disc_hist_time_series, num_
             # topology = get_topology(node, neighbors)
             # neighbors_attributes = get_attributes([neighbors])
 
+            new_transaction.append("sensor_" + sensor_type + "_" + measurement)
             for attribute in current_node_attributes:
                 if not attribute.startswith('s_name'):
-                    new_transaction.append("sensor_" + sensor_type + "_" + measurement + "___" + attribute)
+                    new_transaction.append("sensor_" + sensor_type + "_" + measurement + "_" + attribute)
             enriched_transactions.append(new_transaction)
 
     return enriched_transactions

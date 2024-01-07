@@ -44,12 +44,36 @@ class NaiveSemRL:
 
         formatted_rules = []
         for i in range(len(rules["antecedents"])):
-            formatted_rules.append({
-                "antecedents": rules["antecedents"][i],
-                "consequents": rules["consequents"][i],
-            })
+            consequent_set = list(rules["consequents"][i])
+            antecedents = list(rules["antecedents"][i])
+            if not (len(consequent_set) == 1 and consequent_set[0].startswith('sensor') and
+                    len(consequent_set[0].split("_")) == 3):
+                continue
+
+            antecedent_list = []
+            for antecedent in antecedents:
+                antecedent_list.append(self.deconstruct_rule_string(antecedent))
+
+            formatted_rules.append(
+                {'antecedent': antecedent_list, 'consequent': self.deconstruct_rule_string(consequent_set[0])}
+            )
 
         return formatted_rules
+
+    @staticmethod
+    def deconstruct_rule_string(rule_string):
+        split_string = rule_string.split("_")
+        sensor_type = split_string[1]
+        measurement_range = split_string[2]
+
+        rule = {
+            'type': sensor_type,
+            'measurement_range': measurement_range
+        }
+        if len(split_string) > 3:
+            rule['attribute'] = '_'.join(split_string[3:])
+
+        return rule
 
     def learn_semantic_association_rules(self, knowledge_graph, transactions):
         """

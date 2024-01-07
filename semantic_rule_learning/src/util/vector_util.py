@@ -70,7 +70,7 @@ def create_vector_rep_measurement(sensor_measurement, boundaries, sensor_type):
     return vector, indices
 
 
-def get_category_boundaries(vector_category_tracker):
+def get_category_boundaries(vector_category_tracker, input_vectors):
     """
     each input vector consists of one-hot encoded data for multiple categorical input
     at the last step of the AE, a softmax will be applied to each category individually
@@ -85,4 +85,14 @@ def get_category_boundaries(vector_category_tracker):
 
     indices.append({'start': start, 'end': len(vector_category_tracker)})
 
-    return indices
+    category_applicability = []
+    for vector in input_vectors:
+        applicability = []
+        for category in indices:
+            if all(v == 0 for v in vector[category['start']:category['end']]):
+                applicability.append(False)
+            else:
+                applicability.append(True)
+        category_applicability.append(applicability)
+
+    return indices, category_applicability

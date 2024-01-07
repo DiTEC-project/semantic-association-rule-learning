@@ -43,9 +43,8 @@ def calculate_discrete_boundaries(knowledge_graph, transactions, num_bins):
     for transaction in transactions:
         for item in transaction:
             measurement = item.split("_", 1)[0]
-            sensor_id = item.split("_", 1)[1].split('__')[0]
-            node = knowledge_graph.nodes[sensor_id]
-            sensor_values_per_type[node["properties"]["measurement_aspect"]].append(float(measurement))
+            sensor_type = item.split("_", 1)[1].split('__')[1]
+            sensor_values_per_type[sensor_type].append(float(measurement))
 
     boundary_map = {'label': {}}
     for sensor_type in sensor_values_per_type:

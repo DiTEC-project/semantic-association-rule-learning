@@ -20,6 +20,8 @@ if __name__ == "__main__":
     for sensor in unique_sensor_ids:
         node_repository.add_sensor(sensor[0], sensor[1])
 
+    # get grouped sensor data by time, and the function also filters sensors due to time and space complexity of the
+    # FP-growth-based Naive SemRL algorithm.
     sensor_data = sensor_data_repository.get_grouped_data_by_time(1440)
     transactions = timeseries_to_transactions(sensor_data)
 
@@ -30,8 +32,8 @@ if __name__ == "__main__":
     # discretize numerical attributes in the knowledge graph
     knowledge_graph = discretize_numerical_attributes(knowledge_graph, numerical_attributes, num_bins=5)
 
-    naive_semrl = NaiveSemRL(min_support=0.8, min_confidence=0.8, num_bins=5)
-    full_assoc_rules = naive_semrl.learn_semantic_association_rules(knowledge_graph_networkx, transactions)
+    # naive_semrl = NaiveSemRL(min_support=0.6, min_confidence=0.8, num_bins=5)
+    # full_assoc_rules = naive_semrl.learn_semantic_association_rules(knowledge_graph_networkx, transactions)
 
     ae_semrl = AESemRLCat(knowledge_graph_networkx, transactions, num_bins=5)
     ae_semrl.train()

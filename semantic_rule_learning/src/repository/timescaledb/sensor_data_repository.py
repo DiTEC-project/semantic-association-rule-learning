@@ -31,13 +31,18 @@ class SensorDataRepository:
                 return result
 
     def get_grouped_data_by_time(self, time_interval_in_minutes: int, precision: int = 0):
+        # also filter the data due to space and time complexity of Naive SemRL
+        sensor_name_list = ['s_Pipe_1', 's_Pipe_2', 's_Pipe_3', 's_Pipe_4', 's_Pipe_5', 's_Junction_2', 's_Junction_3',
+                            's_Junction_4', 's_Junction_5', 's_Junction_6']
         with psycopg2.connect(self.connection) as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT time_bucket('%s minutes', time) AS time_interval, "
-                            "round(cast(avg(value) as numeric), %s) as average, CONCAT(name, '__', sensor_type) "
-                            "FROM sensordata s "
+                cur.execute("SELECT time_bucket('%(minutes)s minutes', time) AS time_interval, "
+                            "round(cast(avg(value) as numeric), %(precision)s) as average, CONCAT(name, '__', sensor_type) "
+                            "FROM sensordata s where name = ANY(%(sensor_name_list)s)"
                             "GROUP BY time_interval, name, sensor_type "
-                            "ORDER BY time_interval", (time_interval_in_minutes, precision))
+                            "ORDER BY time_interval",
+                            {'minutes': time_interval_in_minutes, 'precision': precision,
+                             'sensor_name_list': sensor_name_list})
                 result = cur.fetchall()
                 return result
 

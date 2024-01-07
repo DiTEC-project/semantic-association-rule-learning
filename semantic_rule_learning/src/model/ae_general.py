@@ -40,6 +40,7 @@ class AutoEncoderGeneral(nn.Module):
         self.encoder.apply(self.init_weights)
         self.decoder.apply(self.init_weights)
         self.softmax = nn.Softmax(dim=0)
+        self.sigmoid = nn.Sigmoid()
 
     @staticmethod
     def init_weights(m):
@@ -65,12 +66,18 @@ class AutoEncoderGeneral(nn.Module):
         else:
             return False
 
-    def forward(self, x, input_vector_category_indices):
-        x = self.encoder(x)
-        x = self.decoder(x)
+    def forward(self, x, applicability, input_vector_category_indices):
+        y = self.encoder(x)
+        y = self.decoder(y)
 
-        for category_range in input_vector_category_indices:
-            x[category_range['start']:category_range['end']] = \
-                self.softmax(x[category_range['start']:category_range['end']])
+        for category_index in range(len(input_vector_category_indices)):
+            category_range = input_vector_category_indices[category_index]
+            applicable = applicability[category_index]
+            if applicable:
+                y[category_range['start']:category_range['end']] = \
+                    self.softmax(y[category_range['start']:category_range['end']])
+            else:
+                y[category_range['start']:category_range['end']] = \
+                    self.sigmoid(y[category_range['start']:category_range['end']])
 
-        return x
+        return y

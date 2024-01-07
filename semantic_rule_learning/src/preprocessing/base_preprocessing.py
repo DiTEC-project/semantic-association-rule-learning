@@ -111,7 +111,6 @@ def get_transactions_as_cat_vectors(knowledge_graph, transactions, num_bins):
     vector_list = []
     vector_tracker_list = []
 
-    tracked = False
     for transaction in transactions:
         for item in transaction:
             vector_tracker = []
@@ -124,21 +123,17 @@ def get_transactions_as_cat_vectors(knowledge_graph, transactions, num_bins):
 
             # todo: topology is not encoded explicitly, is it necessary? if yes, how do we do that?
             vector, indices = create_vector_rep_measurement(measurement, boundaries, sensor_type)
-            if not tracked:
-                vector_tracker += indices
+            vector_tracker += indices
 
             values, indices = create_vector_rep_node(node, vector_item_order)
             vector += values
-            if not tracked:
-                vector_tracker += indices
+            vector_tracker += indices
 
             # todo: assumed max 4 neighbors and calculate permutations based on these 4 neighbors, this assumption
             #  will be changed in the future
 
             vector_list.append(vector)
-            if not tracked:
-                vector_tracker_list.append(vector_tracker)
-            tracked = True
+            vector_tracker_list.append(vector_tracker)
 
     return {
         'vector_list': vector_list,

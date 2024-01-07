@@ -20,7 +20,8 @@ class AESemRLCat:
         self.num_bins = num_bins
 
         self.input_vectors = get_transactions_as_cat_vectors(knowledge_graph, transactions, num_bins)
-        self.input_vector_category_indices = get_category_boundaries(self.input_vectors['vector_tracker_list'][0])
+        self.input_vector_category_indices, self.input_category_applicability \
+            = get_category_boundaries(self.input_vectors['vector_tracker_list'][0], self.input_vectors['vector_list'])
         self.model = None
         self.softmax = nn.Softmax(dim=0)
 
@@ -81,6 +82,7 @@ class AESemRLCat:
 
     def calculate_implication_probabilities(self, similarity_threshold, input_vector, category):
         base_prob = (1 - similarity_threshold) / (category['end'] - category['start'] - 1)
+        category_applicability = [True for i in range(len(self.input_vector_category_indices))]
         for cat2_index in range(category['end'] - category['start']):
             input_vector[cat2_index + category['start']] = base_prob
 
@@ -90,7 +92,8 @@ class AESemRLCat:
             if prev_index != cat2_index:
                 input_vector[prev_index + category['start']] = base_prob
             input_vector[cat2_index + category['start']] = similarity_threshold
-            output = self.model(torch.FloatTensor(input_vector), self.input_vector_category_indices)
+            output = self.model(torch.FloatTensor(input_vector), category_applicability,
+                                self.input_vector_category_indices)
             implication_probabilities.append(output[category['start']:category['end']])
             prev_index = cat2_index
 
@@ -133,10 +136,10 @@ class AESemRLCat:
             self.train_ae_cat_model()
             self.model.save("test")
 
-    def train_ae_cat_model(self, loss_function=torch.nn.BCELoss(), lr=1e-3, epochs=50):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=1e-8)
-
+    def train_ae_cat_model(self, loss_function=torch.nn.BCELoss(), lr=1e-3, epochs=10):
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
         vectors = self.input_vectors['vector_list']
+        applicability = self.input_category_applicability
         losses = []
 
         plt.style.use('fivethirtyeight')
@@ -149,7 +152,7 @@ class AESemRLCat:
                 cat_vector = torch.FloatTensor(vectors[index])
                 noisy_cat_vector = (cat_vector + torch.normal(0, self.noise_factor, cat_vector.shape)).clip(0, 1)
 
-                reconstructed = self.model(noisy_cat_vector, self.input_vector_category_indices)
+                reconstructed = self.model(noisy_cat_vector, applicability[index], self.input_vector_category_indices)
 
                 partial_losses = []
                 for category_range in self.input_vector_category_indices:
@@ -161,14 +164,14 @@ class AESemRLCat:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                losses.append(loss.detach().numpy().item())
+                # losses.append(loss.detach().numpy().item())
 
         losses_to_print = []
         for index in range(len(losses)):
             if index % 1000 == 0:
                 losses_to_print.append(losses[index])
 
-        plt.plot(losses_to_print)
-        plt.show()
-        plt.plot(losses)
-        plt.show()
+        # plt.plot(losses_to_print)
+        # plt.show()
+        # plt.plot(losses)
+        # plt.show()
