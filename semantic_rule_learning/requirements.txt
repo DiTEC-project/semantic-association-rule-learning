@@ -1,0 +1,11 @@
+python-dotenv==1.0.1
+neo4j==5.18.0
+psycopg2~=2.9.1
+pandas==2.2.1
+mlxtend==0.23.1
+networkx==3.2.1
+torch==2.2.1
+matplotlib==3.8.3
+numpy==1.26.4
+niapy~=2.1.0
+niaarm==0.3.7

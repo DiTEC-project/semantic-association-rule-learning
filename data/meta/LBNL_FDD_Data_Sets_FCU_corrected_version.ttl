@@ -1,0 +1,107 @@
+@prefix bldg: <bldg-59#> .
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+
+bldg:FCU a brick:FCU ;
+    brick:feeds bldg:Zone ;
+    brick:hasPart bldg:Cooling_coil,
+        bldg:Heating_coil,
+        bldg:Outdoor_air_damper,
+        bldg:Supply_air_fan ;
+    brick:hasPoint bldg:FCU_CTRL,
+        bldg:FCU_DAT,
+        bldg:FCU_DA_CFM,
+        bldg:FCU_DA_HUMD,
+        bldg:FCU_MAT,
+        bldg:FCU_MA_HUMD,
+        bldg:FCU_OAT,
+        bldg:FCU_OA_CFM,
+        bldg:FCU_OA_HUMD,
+        bldg:FCU_RAT,
+        bldg:FCU_RA_HUMD .
+
+bldg:Cooling_coil a brick:Chilled_Water_Coil ;
+    brick:hasPoint bldg:FCU_CLG_EWT,
+        bldg:FCU_CLG_GPM,
+        bldg:FCU_CLG_RWT,
+        bldg:FCU_CVLV,
+        bldg:FCU_CVLV_DM .
+
+bldg:FAN_CTRL a brick:Mode_Command .
+
+bldg:FCU_CLG_EWT a brick:Entering_Water_Temperature_Sensor .
+
+bldg:FCU_CLG_GPM a brick:Chilled_Water_Supply_Flow_Sensor .
+
+bldg:FCU_CLG_RWT a brick:Leaving_Water_Temperature_Sensor .
+
+bldg:FCU_CTRL a brick:Mode_Command .
+
+bldg:FCU_CVLV a brick:Valve_Position_Sensor .
+
+bldg:FCU_CVLV_DM a brick:Valve_Command .
+
+bldg:FCU_DAT a brick:Discharge_Air_Temperature_Sensor .
+
+bldg:FCU_DA_CFM a brick:Discharge_Air_Flow_Sensor .
+
+bldg:FCU_DA_HUMD a brick:Discharge_Air_Humidity_Sensor .
+
+bldg:FCU_DMPR a brick:Damper_Position_Sensor .
+
+bldg:FCU_DMPR_DM a brick:Damper_Position_Command .
+
+bldg:FCU_HTG_EWT a brick:Entering_Water_Temperature_Sensor .
+
+bldg:FCU_HTG_GPM a brick:Hot_Water_Supply_Flow_Sensor .
+
+bldg:FCU_HTG_RWT a brick:Leaving_Water_Temperature_Sensor .
+
+bldg:FCU_HVLV a brick:Valve_Position_Sensor .
+
+bldg:FCU_HVLV_DM a brick:Valve_Command .
+
+bldg:FCU_MAT a brick:Mixed_Air_Temperature_Sensor .
+
+bldg:FCU_MA_HUMD a brick:Mixed_Air_Humidity_Sensor .
+
+bldg:FCU_OAT a brick:Outside_Air_Temperature_Sensor .
+
+bldg:FCU_OA_CFM a brick:Outside_Air_Flow_Sensor .
+
+bldg:FCU_OA_HUMD a brick:Outside_Air_Humidity_Sensor .
+
+bldg:FCU_RAT a brick:Return_Air_Temperature_Sensor .
+
+bldg:FCU_RA_HUMD a brick:Return_Air_Humidity_Sensor .
+
+bldg:FCU_SPD a brick:Speed_Status .
+
+bldg:FCU_WAT a brick:Electricial_Meter .
+
+bldg:Heating_coil a brick:Hot_Water_Coil ;
+    brick:hasPoint bldg:FCU_HTG_EWT,
+        bldg:FCU_HTG_GPM,
+        bldg:FCU_HTG_RWT,
+        bldg:FCU_HVLV,
+        bldg:FCU_HVLV_DM .
+
+bldg:Outdoor_air_damper a brick:Outside_Damper ;
+    brick:hasPoint bldg:FCU_DMPR,
+        bldg:FCU_DMPR_DM .
+
+bldg:RMCLGSPT a brick:Zone_Air_Cooling_Temperature_Setpoint .
+
+bldg:RMHTGSPT a brick:Zone_Air_Heating_Temperature_Setpoint .
+
+bldg:RM_TEMP a brick:Zone_Air_Temperature_Sensor .
+
+bldg:Supply_air_fan a brick:Fan ;
+    brick:hasPoint bldg:FAN_CTRL,
+        bldg:FCU_SPD,
+        bldg:FCU_WAT .
+
+bldg:Zone a brick:Zone ;
+    brick:hasPoint bldg:RMCLGSPT,
+        bldg:RMHTGSPT,
+        bldg:RM_TEMP .
+

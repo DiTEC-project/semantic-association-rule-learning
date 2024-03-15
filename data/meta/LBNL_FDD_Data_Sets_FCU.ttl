@@ -1,0 +1,47 @@
+@prefix FCU: <fcu#> .
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+
+FCU:fcu brick:feeds FCU:fcu_zone ;
+    brick:hasPart FCU:FCU_CV,
+        FCU:FCU_CWC,
+        FCU:FCU_FAN,
+        FCU:FCU_HV,
+        FCU:FCU_HWV,
+        FCU:FCU_OD ;
+    brick:hasPoint FCU:Discharge_Air_Flow_Sensor,
+        FCU:FCU_DA_HUMD,
+        FCU:Discharge_Air_Temperature_Sensor,
+        FCU:Mixed_Air_Humidity_Sensor,
+        FCU:Mixed_Air_Temperature_Sensor,
+        FCU:Outside_Air_Flow_Sensor,
+        FCU:Outside_Air_Humidity_Sensor,
+        FCU:Outside_Air_Temperature_Sensor,
+        FCU:Return_Air_Humidity_Sensor,
+        FCU:Return_Air_Temperature_Sensor .
+
+FCU:FCU_CV brick:hasPoint FCU:Valve_Command,
+        FCU:Valve_Position_Sensor .
+
+FCU:FCU_CWC brick:hasPoint FCU:Chilled_Water_Supply_Flow_Sensor,
+        FCU:Entering_Water_Temperature_Sensor,
+        FCU:Leaving_Water_Temperature_Sensor .
+
+FCU:FCU_FAN brick:hasPoint FCU:FCU_SPD,
+        FCU:FCU_WAT .
+
+FCU:FCU_HV brick:hasPoint FCU:Valve_Command,
+        FCU:Valve_Position_Sensor .
+
+FCU:FCU_HWV brick:hasPoint FCU:Entering_Water_Temperature_Sensor,
+        FCU:Hot_Water_Supply_Flow_Sensor,
+        FCU:Leaving_Water_Temperature_Sensor .
+
+FCU:FCU_OD brick:hasPoint FCU:Damper_Position_Command,
+        FCU:Damper_Position_Sensor .
+
+FCU:fcu_zone brick:hasPoint FCU:Mode_Command,
+        FCU:Speed_Status,
+        FCU:Zone_Air_Cooling_Temperature_Setpoint,
+        FCU:Zone_Air_Heating_Temperature_Setpoint,
+        FCU:Zone_Air_Temperature_Sensor .
+

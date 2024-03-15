@@ -1,0 +1,4 @@
+wntr~=0.5.0
+neo4j~=5.6.0
+python-dotenv~=1.0.0
+rdflib==7.0.0
