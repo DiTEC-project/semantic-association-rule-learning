@@ -10,12 +10,12 @@ from src.util.transactions_util import *
 
 # list of categorical and numerical attributes to consider (not all attributes are taken into account for now)
 # attribute names for water network datasets
-# categorical_attributes = ['type', 'measurement_aspect']
-# numerical_attributes = ['diameter', 'length']
+categorical_attributes = ['type', 'measurement_aspect']
+numerical_attributes = ['diameter', 'length']
 
 # attribute names for lbnl dataset (only the 'type' attribute exists :( )
-categorical_attributes = ['type']
-numerical_attributes = []
+# categorical_attributes = ['type']
+# numerical_attributes = []
 
 
 def filter_knowledge_graph_props(knowledge_graph, list_of_props_to_keep=None):
