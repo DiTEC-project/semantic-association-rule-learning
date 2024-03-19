@@ -10,13 +10,13 @@ from src.algorithm.ae_semrl_benchmark import *
 import pandas as pd
 
 # list of configurable parameters for the 3 algorithms implemented
-FP_GROWTH_MIN_SUPPORT = 0.3
+FP_GROWTH_MIN_SUPPORT = 0.25
 FP_GROWTH_MIN_CONFIDENCE = 0.8
 AE_SEMRL_SIMILARITY_THRESHOLD = 0.5
 AE_SEMRL_MAX_ANTECEDENT = 1
 AE_SEMRL_NOISE_FACTOR = 0.5
-HHO_POPULATION_SIZE = 40
-HHO_MAX_ITERATION = 50
+HHO_POPULATION_SIZE = 5
+HHO_MAX_ITERATION = 5
 TRANSACTION_PERIOD_LENGTH_IN_MINUTES = 1440
 NUM_OF_BINS = 10  # to discretize numerical data into
 NUM_OF_NEIGHBORS = 0

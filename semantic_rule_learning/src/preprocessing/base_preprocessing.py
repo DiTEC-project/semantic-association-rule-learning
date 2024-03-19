@@ -1,9 +1,3 @@
-"""
-Copyright (C) 2023 University of Amsterdam
-@author Erkan Karabulut – e.karabulut@uva.nl
-@version 1.0
-Preprocessing functions that are common across all algorithms implemented
-"""
 from src.util.vector_util import *
 from src.util.json_util import *
 from src.util.transactions_util import *

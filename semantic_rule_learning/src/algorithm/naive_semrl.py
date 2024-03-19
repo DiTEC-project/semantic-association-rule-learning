@@ -1,9 +1,3 @@
-"""
-Copyright (C) 2023 University of Amsterdam
-@author Erkan Karabulut – e.karabulut@uva.nl
-@version 1.0
-FP-Growth algorithm implementation using mlxtend package
-"""
 import time
 import pandas as pd
 
