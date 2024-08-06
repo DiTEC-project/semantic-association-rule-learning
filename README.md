@@ -1,23 +1,23 @@
-# Semantic Association Rule Learning
+# Contextual and Holistic ARM for IoT (CHARM)
 
 -------
 
 ## About
 
-This repository consists of a set of semantic association rule learning approaches from time series data and knowledge
-graphs, which are listed below:
+This repository consists of a set of semantic association rule learning approaches from sensor data and knowledge
+graphs in IoT environments, which are listed below:
 
-- AutoEncoder-based SEMantic Association Rule Learning [reference hidden for anonymity]
-- Naive SEMantic Association Rule Learning (Naive SemRL) [2]
-- Optimization-based Semantic Association Rule Learning, based on Harris' Hawks Optimization [3]
+- Our AE-based ARM approach [reference hidden for anonymity]
+- Naive SEMantic Association Rule Learning (Naive SemRL) [2], implemented using MLxtend [8].
+- TS-NARM [3] (does not support semantic association rules, however, the original version is adapted to work with
+  semantics), implemented using NiaARM [4] and NiaPy [5].
 
 ## Code Structure
 
-The time series data is stored inside a [TimescaleDB](https://www.timescale.com/) instance, while the
+The sensor data is stored inside a [TimescaleDB](https://www.timescale.com/) instance, while the
 knowledge graph is stored inside a [Neo4j](https://neo4j.com/) database instance. The folder
 named [semantic_rule_learning](semantic_rule_learning)
-contains the source code for all of the three semantic association rule learning algorithms, namely Naive SemRL, HHO,
-and AE SemRL.
+contains the source code for our proposed AE-based ARM approach, as well as all other baseline methods
 
 ### List of modules
 
@@ -26,21 +26,20 @@ and AE SemRL.
   datasets are not included in this folder as they occupy too much space. However, they can be found following the
   references.
 - **graphdb**: contains a Neo4j implementation together with 3 Python scripts that are used to
-  create
-  a knowledge graph per dataset.
+  create a knowledge graph per dataset.
 - **timescaledb**: a TimescaleDB implementation together with Python scripts that stores
   sensor data from each dataset in a different table
 - **semantic_rule_learning**: a python application that creates semantic association rules
-  from a given transaction dataset and knowledge graph
+  from a given sensor data and IoT knowledge graph
 
 ## Datasets
 
-- LeakDB [1]: is an artificially generated realistic dataset for leak detection in water distribution networks. It
-  contains time series data from 96 sensors of various types, as well as semantic information such as the formation of
+- **LeakDB** [1]: is an artificially generated realistic dataset for leak detection in water distribution networks. It
+  contains sensor data from 96 sensors of various types, as well as semantic information such as the formation of
   the network, sensor placement, and properties of network components, i.e., pipes and junctions
-- L-Town [6]: is another dataset in the water distribution networks with same characteristics. It
+- **L-Town** [6]: is another dataset in the water distribution networks with same characteristics. It
   contains 118 sensors and associated semantics.
-- LBNL [7]: is a Fault Detection and Diagnostics Dataset that contains both time series data from 29 sensors and
+- **LBNL** [7]: is a Fault Detection and Diagnostics Dataset that contains both sensor data from 29 sensors and
   semantics for Heating, Ventilation, and Air Conditioning (HVAC) systems such as the placement of the sensors and
   structure of the HVAC system.
 
@@ -78,17 +77,20 @@ and AE SemRL.
 
 ## How to Reuse?
 
-The source code for AE SemRL is given in the [ae_semrl.py](semantic_rule_learning/src/algorithm/ae_semrl.py) file. The
+The source code of our AE-based ARM is given in
+the [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/our_ae_based_arm/our_ae_based_arm.py) file. The
 file contains a method called `create_input_vectors()` which receives a knowledge graph in the form
 of [NetworkX](https://networkx.org/) graphs, and a transaction set in the form of array of arrays where each array
 contains items for a transaction. `generate_rules()` method is called to generate a set of semantic association rules.
 You can copy this file to your own codebase to use it as described.
 
-A denoising Autoencoder implementation is given in [autoencoder](semantic_rule_learning/src/model/autoencoder.py) file.
+A denoising Autoencoder implementation is given
+in [autoencoder](semantic_rule_learning/src/algorithm/our_ae_based_arm/autoencoder.py) file.
 It is a generic denoising Autoencoder implementation that has 3 layers for encoder and decoder each. The dimension of
 each layer is 4 times smaller than the previous layer, hence an under-complete Autoencoder. You can copy this file to
-your code base to use it as part of AE SemRL or create your own Autoencoder implementation, and call it inside `train()`
-method of [ae_semrl.py](semantic_rule_learning/src/algorithm/ae_semrl.py).
+your code base to use it as part of our AE-based ARM or create your own Autoencoder implementation, and call it
+inside `train()` method
+of [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/our_ae_based_arm/our_ae_based_arm.py).
 
 ### References:
 
@@ -96,8 +98,8 @@ method of [ae_semrl.py](semantic_rule_learning/src/algorithm/ae_semrl.py).
    Distribution Networks:(146)." WDSA/CCWI Joint Conference Proceedings. Vol. 1. 2018.
 2. Karabulut, Erkan, Victoria Degeler, and Paul Groth. "Semantic Association Rule Learning from Time Series Data and
    Knowledge Graphs." arXiv preprint arXiv:2310.07348 (2023).
-3. Heidari, Ali Asghar, et al. "Harris hawks optimization: Algorithm and applications." Future generation computer
-   systems 97 (2019): 849-872.
+3. Fister Jr, Iztok, et al. "Time series numerical association rule mining variants in smart agriculture." Journal of
+   Ambient Intelligence and Humanized Computing 14.12 (2023): 16853-16866.
 4. Stupan, Žiga, and Iztok Fister. "Niaarm: a minimalistic framework for numerical association rule mining." Journal of
    Open Source Software 7.77 (2022): 4448.
 5. Vrbančič, Grega, et al. "NiaPy: Python microframework for building nature-inspired algorithms." Journal of Open
@@ -109,6 +111,9 @@ method of [ae_semrl.py](semantic_rule_learning/src/algorithm/ae_semrl.py).
    Ling, J., Gorthala, R., Wen, J., Chen, Z., Huang, S., , Vrabie, D.: Lbnl fault
    detection and diagnostics datasets (08 2022). https://doi.org/10.25984/1881324,
    https://data.openei.org/submissions/5763
+8. Sebastian Raschka. 2018. MLxtend: Providing machine learning and data science utilities and extensions to Python’s
+   scientific computing stack. The Journal of Open Source Software 3, 24 (April
+   2018). https://doi.org/10.21105/joss.00638
 
 ### Contact
 
