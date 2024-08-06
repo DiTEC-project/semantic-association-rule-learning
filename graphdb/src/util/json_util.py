@@ -1,9 +1,4 @@
-"""
-Copyright (C) 2022 fortiss GmbH
-@author Erkan Karabulut – karabulut@fortiss.org
-@version 1.0
-Utility functions related with JSON (dict) objects
-"""
+# taken from: https://git.fortiss.org/iiot_external/tsmatch/
 
 
 def linearize(json_object):

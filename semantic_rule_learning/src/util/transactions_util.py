@@ -3,6 +3,7 @@ Includes utility functions for processing transaction(s)
 """
 from src.util.graph_util import *
 from src.repository.timescaledb.sensor_data_repository import SensorDataRepository
+from src.util.discretization_util import *
 
 
 def get_transactions_by_subgraph(transactions, subgraph):
@@ -52,11 +53,8 @@ def calculate_discrete_boundaries(transactions, num_bins):
         # sort values in increasing order
         if len(sensor_values_per_type[sensor_type]) == 0:
             continue
-        sorted_values = np.sort(sensor_values_per_type[sensor_type])
-        # define boundaries based on num_bins
-        boundaries = np.interp(np.linspace(0, len(sorted_values), num_bins + 1),
-                               np.arange(len(sorted_values)),
-                               sorted_values)
+        boundaries = equal_frequency_discretization(sensor_values_per_type[sensor_type], num_bins)
+
         boundary_map[sensor_type] = boundaries
         boundary_map['label'][sensor_type] = []
         for index in range(len(boundaries) - 1):

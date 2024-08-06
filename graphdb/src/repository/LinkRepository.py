@@ -9,27 +9,39 @@ class LinkRepository(BaseRepository):
         """
         add links for the water network dataset
         """
-        for link in links:
-            link = linearize(link)
-            link["id"] = link["name"]
-            link["type"] = link["link_type"]
-            link["name"] = link["link_type"] + "_" + link["name"]
-            with self.driver.session() as session:
-                query = "WITH apoc.convert.fromJsonMap($link) AS document CREATE(p:Link) SET p = document"
+        with self.driver.session() as session:
+            for link in links:
+                link = linearize(link)
+                link["id"] = link["name"]
+                link["type"] = link["link_type"]
+                link["name"] = link["link_type"] + "_" + link["name"]
+                query = "WITH apoc.convert.fromJsonMap($link) AS document CREATE(p:" + link[
+                    "type"] + ") SET p = document"
                 session.run(query, {
                     "link": json.dumps(link)
                 })
 
-                query = "match (n1:Node {id: $source})\n" \
-                        "match (n2:Node {id: $destination})\n" \
-                        "match (l:Link {id: $pipe_name})\n" \
-                        "CREATE (n1)-[:Link]->(l)\n" \
-                        "CREATE (l)-[:Link]->(n2)\n"
-                session.run(query, {
-                    "source": link["start_node_name"],
-                    "destination": link["end_node_name"],
-                    "pipe_name": link["id"]
-                })
+                if link["start_node_name"] == link["id"] or link["end_node_name"] == link["id"]:
+                    query = "match (n1 {id: $source})\n" \
+                            "match (n2 {id: $destination})\n" \
+                            "MERGE (n1)-[:connectedTo]->(n2)\n"
+                    session.run(query, {
+                        "destination": link["end_node_name"],
+                        "source": link["start_node_name"]
+                    })
+                else:
+                    query = "match (n1 {id: $source})\n" \
+                            "match (n2 {id: $destination})\n" \
+                            "match (l:" + link["type"] + " {id: $pipe_name})\n" \
+                                                         "MERGE (n1)-[:connectedTo]->(l)\n" \
+                                                         "MERGE (l)-[:connectedTo]->(n2)\n"
+                    session.run(query, {
+                        "destination": link["end_node_name"],
+                        "source": link["start_node_name"],
+                        "pipe_name": link["id"]
+                    })
+
+
 
     def create_edge(self, edge_label, source_node_name, destination_node_name):
         with self.driver.session() as session:

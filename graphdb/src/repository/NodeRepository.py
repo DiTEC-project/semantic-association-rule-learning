@@ -15,9 +15,11 @@ class NodeRepository(BaseRepository):
             node["type"] = node["node_type"]
             node["name"] = node["node_type"] + "_" + node["name"]
             with self.driver.session() as session:
-                query = 'WITH apoc.convert.fromJsonMap($node) AS document CREATE(p:Node) SET p = document'
+                query = 'WITH apoc.convert.fromJsonMap($node) AS document CREATE(p:' + node[
+                    'type'] + ') SET p = document'
                 session.run(query, {
-                    "node": json.dumps(node)
+                    "node": json.dumps(node),
+                    "node_type": node["type"]
                 })
 
     def create_node(self, label, properties):

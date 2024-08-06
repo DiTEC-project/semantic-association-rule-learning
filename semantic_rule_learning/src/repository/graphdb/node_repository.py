@@ -12,12 +12,16 @@ class NodeRepository(BaseRepository):
     def get_all_nodes(self):
         with self.driver.session() as session:
             query = "MATCH (n:Node) RETURN n"
-            return json.dumps(session.run(query).data())
+            nodes = json.dumps(session.run(query).data())
+            session.close()
+            return nodes
 
     def get_all_nodes_with_relations(self):
         with self.driver.session() as session:
             query = "MATCH (s)-[r]-(d) RETURN s,r,d"
-            return session.run(query).data()
+            result = session.run(query).data()
+            session.close()
+            return result
 
     def add_sensor(self, object_id, sensor_type):
         with self.driver.session() as session:
@@ -28,24 +32,37 @@ class NodeRepository(BaseRepository):
                 "sensor_id": object_id,
                 "type": sensor_type
             })
+            session.close()
 
-    def get_all_neighbors(self, object_id, n_neighbors):
-        neighbors = []
-        if type(n_neighbors) != int or n_neighbors < 0 or n_neighbors > 1000:
-            print("Neighbor count to include in rule learning is forced set to 2.")
-            n_neighbors = 2
+    def get_random_sensor_subgraph(self, sensor_node_count):
+        """
+        (Random subsampling of the KG) Get a subgraph that has "neighboring_sensor_count" amount of sensors
+        Starts from "sensor_name" node and gradually searches 1st, 2nd, 3rd ... neighbors to find
+        "neighboring_sensor_count" amount of sensors in total
+        """
+        sensor_name_list = []
 
         with self.driver.session() as session:
-            query = "MATCH p=(s {id: $id})-[*" + str(n_neighbors) + ".." + str(n_neighbors) + "]-() RETURN p"
-            paths = session.run(query, {"id": object_id}).data()
-            for path in paths:
-                source_type = get_node_type(path["p"][0])
-                link_type = path["p"][1]
-                destination_type = get_node_type(path["p"][2])
-                neighbors.append({
-                    'source_type': source_type,
-                    'link_type': link_type,
-                    'destination_type': destination_type
-                })
+            path_length = 2
+            paths = []
+            while len(paths) < sensor_node_count or path_length > 40:
+                query = "MATCH (a:Sensor)-[]-(t) " + \
+                        "with a.name as randomSensor, rand() as r " + \
+                        "order by r limit 1 " + \
+                        "MATCH (n {name: randomSensor}) " + \
+                        "OPTIONAL MATCH p=(n)-[*1.." + str(path_length) + "]-(neighbor) " + \
+                        "WHERE neighbor: Sensor " + \
+                        "with p, collect(distinct neighbor) AS neighbors " + \
+                        "return neighbors, length(p) " + \
+                        "order by length(p) asc"
+                paths = []
+                results = session.run(query).data()
+                for row in results:
+                    for neighbor in row['neighbors']:
+                        if neighbor not in paths:
+                            paths.append(neighbor)
+                path_length += 1
+            for sensor_node in paths[:sensor_node_count]:
+                sensor_name_list.append(sensor_node['name'])
 
-        return neighbors
+        return sensor_name_list

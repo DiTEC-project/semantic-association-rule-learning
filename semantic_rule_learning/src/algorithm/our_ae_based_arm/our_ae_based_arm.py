@@ -1,21 +1,21 @@
 import random
 import time
-
+import numpy as np
 import torch
-import copy
 
 from itertools import chain, combinations
 from torch import nn
-from src.model.autoencoder import AutoEncoder
-from src.preprocessing.base_preprocessing import *
+from src.algorithm.our_ae_based_arm.autoencoder import AutoEncoder
+from src.preprocessing.semantic_enrichment import *
+from src.util.rule_quality import *
 
 
-class AESemRL:
+class OurAEBasedARM:
     """
-    AutoEncoder-based SEMantic Association Rule Learning (AE SemRL) implementation
+    Implementation of our Autoencoder-based (AE-based) ARM method as part of the CHARM pipeline
     """
 
-    def __init__(self, num_bins=10, num_neighbors=1, noise_factor=0.5, similarity_threshold=0.8, max_antecedents=2):
+    def __init__(self, num_bins=10, num_neighbors=1, max_antecedents=2, similarity_threshold=0.8, noise_factor=0.5):
         """
         @param num_bins: number of bins to discretize numerical data into
         @param num_neighbors: number of neighbors to consider when enriching time series data with semantics
@@ -23,6 +23,7 @@ class AESemRL:
         @param similarity_threshold: feature similarity threshold
         @param max_antecedents: maximum number of antecedents that the learned rules will have
         """
+        self.training_time = 0
         self.noise_factor = noise_factor
         self.num_bins = num_bins
         self.num_neighbors = num_neighbors
@@ -30,7 +31,6 @@ class AESemRL:
         self.max_antecedents = max_antecedents
 
         self.model = None
-        self.input_vector_category_indices = None
         self.input_vectors = None
         self.softmax = nn.Softmax(dim=0)
 
@@ -41,56 +41,110 @@ class AESemRL:
         @param transactions: discrete sensor measurements in the form of transactions
         """
         # get input vectors in the form of one-hot encoded vectors
-        self.input_vectors = get_transactions_as_cat_vectors(knowledge_graph, transactions, self.num_bins,
-                                                             self.num_neighbors)
-        # track list of
-        self.input_vector_category_indices = get_category_boundaries(self.input_vectors['vector_tracker_list'])
+        self.input_vectors = semantic_enrichment_our_ae_based_arm(knowledge_graph, transactions, self.num_bins,
+                                                                  self.num_neighbors)
 
     def generate_rules(self):
         """
-        generate rules using the AE SemRL algorithm
+        Extract association rules from the Autoencoder
         """
         association_rules = []
         input_vector_size = len(self.input_vectors['vector_tracker_list'][0])
 
-        test_vector_list = []
         start = time.time()
-        powerset = list(chain.from_iterable(
-            combinations(self.input_vector_category_indices[0], r) for r in range(self.max_antecedents + 1)))
-
-        copied_input_vector_list = copy.deepcopy(self.input_vectors['vector_list'])
-        unique_input_vector_list = [list(x) for x in set(tuple(x) for x in copied_input_vector_list)]
-        for input_vector in unique_input_vector_list:
-            for category_list in powerset[1:]:
-                test_vector = self.initialize_input_vector(
-                    input_vector_size, self.input_vector_category_indices[0], category_list)
-
-                for category in category_list:
-                    test_vector[category['start']:category['end']] = input_vector[category['start']:category['end']]
-
-                if test_vector in test_vector_list:
-                    continue
-
-                test_vector_list.append(test_vector)
+        # feature combinations to be tested based on the self.max_antecedents parameter
+        feature_combinations = list(chain.from_iterable(
+            combinations(self.input_vectors['category_indices'][0], r) for r in range(self.max_antecedents + 1)))
+        for category_list in feature_combinations[1:]:
+            # create a vector with equal probabilities per feature class values
+            unmarked_features = self.initialize_input_vectors(input_vector_size,
+                                                              self.input_vectors["category_indices"][0], category_list)
+            # mark feature class values in category_list in the unmarked_features
+            test_vectors = self.mark_features(unmarked_features, list(category_list))
+            for test_vector in test_vectors:
+                # marked features are the candidate antecedents
+                candidate_antecedents = [index for index, value in enumerate(test_vector) if value == 1]
+                # perform a forward run on the trained Autoencoder
                 implication_probabilities = self.model(torch.FloatTensor(test_vector),
-                                                       self.input_vector_category_indices[0]).detach().numpy().tolist()
-
+                                                       self.input_vectors['category_indices'][0]) \
+                    .detach().numpy().tolist()
+                # make sure that the marked features have higher output probability than the similarity threshold
+                high_support = True
+                for ant in candidate_antecedents:
+                    if implication_probabilities[ant] < self.similarity_threshold:
+                        high_support = False
+                        break
+                if not high_support:
+                    continue
+                # go through the output probabilities (implication_probabilities) and check if they have higher
+                # probability then the given similarity threshold, except the candidate antecedents to prevent
+                # self implication
                 consequent_list = []
                 for prob_index in range(len(implication_probabilities)):
-                    if len(category_list) == 1 and not (
-                            prob_index >= category_list[0]['end'] or prob_index < category_list[0]['start']):
-                        # make sure that if the rule has 1 antecedent, then it shouldn't imply itself
-                        continue
-                    if implication_probabilities[prob_index] >= self.similarity_threshold:
-                        consequent_list.append(prob_index)
+                    if prob_index not in candidate_antecedents:
+                        # store the feature class values with high output probability
+                        if implication_probabilities[prob_index] >= self.similarity_threshold:
+                            consequent_list.append(prob_index)
                 if len(consequent_list) > 0:
-                    antecedent_list = [index for index in range(len(test_vector)) if test_vector[index] == 1]
-                    new_rule = self.get_rule(antecedent_list, consequent_list)
-
+                    # format the rule based indices in consequent_list and candidate_antecedents list
+                    new_rule = self.get_rule(candidate_antecedents, consequent_list)
+                    # form rules one by one making sure each rule has one item in the consequent
+                    # because p -> q ∧ r is equal to p -> q AND p -> r anyways
                     for consequent in new_rule['consequents']:
+                        # Not used in the AE-based ARM evaluation, but for feature use cases accept only rules with
+                        # dynamic values (sensor measurements) in the consequent part as they are more interesting
+                        # if "_range_" in consequent:
                         association_rules.append({'antecedents': new_rule['antecedents'], 'consequent': consequent})
         execution_time = time.time() - start
-        return association_rules, execution_time
+        return association_rules, execution_time, self.training_time
+
+    @staticmethod
+    def initialize_input_vectors(input_vector_size, categories, marked_categories) -> list:
+        """
+        initialize an input vector with all equal probabilities
+        @param input_vector_size: input vector size
+        @param categories: list of features and their start and end indices in the input vector
+        @param marked_categories: features to be marked so that we don't initialize them with equal probs
+        """
+        vector_with_unmarked_features = np.zeros(input_vector_size)
+        for category in categories:
+            if category not in marked_categories:
+                # assign equal probabilities
+                vector_with_unmarked_features[category['start']:category['end']] = 1 / (
+                        category['end'] - category['start'])
+        return list(vector_with_unmarked_features)
+
+    def mark_features(self, unmarked_test_vector, features, test_vectors=[]):
+        """
+        Create a list of test vectors by marking the given features in the unmarked test vector
+        Marking is done by assigning the probability of 1 (100%)
+        @param unmarked_test_vector: vector with equal probabilities
+        @param features: features to be marked
+        @param test_vectors: existing test vectors
+        """
+        # Features are recursively marked. For instance, if features f1, f2, and f3 will be marked, then first
+        # mark class values of f1 in separate vectors (test_vectors list version one), and then do a recursive call
+        # and mark the features of f2 inside test_vectors and then repeat for f3. If f1, f2, and f3 have 3 possible
+        # class values each, then the end result will contain 3x3x3=27 test vectors.
+        if len(features) == 0:
+            return test_vectors
+        feature = features.pop()
+        new_test_vectors = []
+        for i in range(feature['end'] - feature['start']):
+            if len(test_vectors) > 0:
+                # for each of the existing test vectors, mark
+                for vector in test_vectors:
+                    new_vector = vector.copy()
+                    # mark indices of class values in "feature" in the existing list of test vectors
+                    new_vector[feature['start'] + i] = 1
+                    new_test_vectors.append(new_vector)
+            else:
+                new_vector = unmarked_test_vector.copy()
+                # mark indices of class values in "feature" in the new test vector
+                new_vector[feature['start'] + i] = 1
+                new_test_vectors.append(new_vector)
+        #
+        return self.mark_features(unmarked_test_vector, features, new_test_vectors)
 
     def reformat_rules(self, association_rules):
         """
@@ -108,6 +162,7 @@ class AESemRL:
         """
         calculate rule quality stats for the given set of rules based on the input transactions
         """
+        dataset_coverage = np.zeros(len(transactions))
         for rule_index in range(len(rules)):
             rule = rules[rule_index]
             antecedents_occurrence_count = 0
@@ -115,6 +170,7 @@ class AESemRL:
             co_occurrence_count = 0
             only_antecedence_occurrence_count = 0
             only_consequence_occurrence_count = 0
+            no_ant_no_cons_count = 0
             for index in range(len(self.input_vectors['vector_list'])):
                 encoded_transaction = self.input_vectors['vector_list'][index]
                 antecedent_match = True
@@ -123,6 +179,7 @@ class AESemRL:
                         antecedent_match = False
                         break
                 if antecedent_match:
+                    dataset_coverage[index] = 1
                     antecedents_occurrence_count += 1
                 if encoded_transaction[self.input_vectors['vector_tracker_list'][index].
                         index(rule['consequent'])] == 1:
@@ -133,22 +190,26 @@ class AESemRL:
                         only_consequence_occurrence_count += 1
                 elif antecedent_match:
                     only_antecedence_occurrence_count += 1
+                else:
+                    no_ant_no_cons_count += 1
 
             num_transactions = len(transactions)
             support_body = antecedents_occurrence_count / num_transactions
-            support_head = consequents_occurrence_count / num_transactions
-            conf_not_body_and_head = only_consequence_occurrence_count / num_transactions
 
             rule['support'] = co_occurrence_count / num_transactions
-            rule['confidence'] = rule['support'] / support_body
-            rule['lift'] = rule['confidence'] / support_head
-            rule['leverage'] = rule['support'] - (support_body * support_head)
-            rule['zhangs_metric'] = (rule['confidence'] - conf_not_body_and_head) / max(rule['confidence'],
-                                                                                        conf_not_body_and_head)
-        return rules
+            rule['confidence'] = rule['support'] / support_body if support_body != 0 else 0
+            rule['coverage'] = antecedents_occurrence_count / num_transactions
+            rule["zhangs_metric"] = calculate_zhangs_metric(rule["support"],
+                                                            (antecedents_occurrence_count / num_transactions),
+                                                            (consequents_occurrence_count / num_transactions))
+
+        return rules, dataset_coverage.sum() / len(transactions)
 
     @staticmethod
     def initialize_input_vector(input_vector_size, categories, exceptions) -> list:
+        """
+        Initialize an input vector with all equal probabilities per feature class values
+        """
         input_vector = np.zeros(input_vector_size)
         for category in categories:
             if category not in exceptions:
@@ -156,6 +217,11 @@ class AESemRL:
         return list(input_vector)
 
     def get_rule(self, antecedents, consequents):
+        """
+        find the string form of a given rule in vector form
+        @param antecedents: antecedents of th rule
+        @param consequents: consequents of the rule
+        """
         rule = {'antecedents': [], 'consequents': []}
         for antecedent in antecedents:
             rule['antecedents'].append(self.input_vectors['vector_tracker_list'][0][antecedent])
@@ -168,7 +234,7 @@ class AESemRL:
     @staticmethod
     def get_deconstructed_rule(antecedents, consequent):
         """
-        convert rules in the vector form back into string form
+        convert rules in string form in the vector form back into string form
         """
         rule = {'antecedents': [], 'consequent': None}
         groups = {}
@@ -221,18 +287,17 @@ class AESemRL:
 
         return rule
 
-    def train(self):
+    def train(self, model):
         """
         train the autoencoder
         """
-        # pretrain categorical attributes from the knowledge graph, to create a numerical representation for them
-        self.model = AutoEncoder(len(self.input_vectors['vector_list'][0]))
+        self.model = AutoEncoder(max(len(x) for x in self.input_vectors['vector_list']))
 
-        if not self.model.load("test"):
+        if not self.model.load(model):
             self.train_ae_model()
-            # self.model.save("test")
+            # self.model.save(model)
 
-    def train_ae_model(self, loss_function=torch.nn.BCELoss(), lr=5e-3, epochs=5):
+    def train_ae_model(self, loss_function=torch.nn.BCELoss(), lr=5e-3, epochs=2):
         """
         train the encoder on the semantically enriched transaction dataset
         """
@@ -240,6 +305,7 @@ class AESemRL:
         vectors = self.input_vectors['vector_list']
         random.shuffle(vectors)
 
+        training_start_time = time.time()
         for epoch in range(epochs):
             for index in range(len(vectors)):
                 print("Training progress:", (index + 1 + (epoch * len(vectors))), "/", (len(vectors) * epochs),
@@ -247,15 +313,16 @@ class AESemRL:
                 cat_vector = torch.FloatTensor(vectors[index])
                 noisy_cat_vector = (cat_vector + torch.normal(0, self.noise_factor, cat_vector.shape)).clip(0, 1)
 
-                reconstructed = self.model(noisy_cat_vector, self.input_vector_category_indices[index])
+                reconstructed = self.model(noisy_cat_vector, self.input_vectors['category_indices'][index])
+                loss = loss_function(reconstructed, cat_vector)
+                # partial_losses = []
+                # for category_range in self.input_vectors['category_indices'][index]:
+                #     start = category_range['start']
+                #     end = category_range['end']
+                #     partial_losses.append(loss_function(reconstructed[start:end], cat_vector[start:end]))
 
-                partial_losses = []
-                for category_range in self.input_vector_category_indices[index]:
-                    start = category_range['start']
-                    end = category_range['end']
-                    partial_losses.append(loss_function(reconstructed[start:end], cat_vector[start:end]))
-
-                loss = sum(partial_losses)
+                # loss = sum(partial_losses)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+        self.training_time = time.time() - training_start_time
