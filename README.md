@@ -96,8 +96,11 @@ of [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/our_ae_based_arm/o
 
 1. Vrachimis, Stelios G., and Marios S. Kyriakou. "LeakDB: a Benchmark Dataset for Leakage Diagnosis in Water
    Distribution Networks:(146)." WDSA/CCWI Joint Conference Proceedings. Vol. 1. 2018.
-2. Karabulut, Erkan, Victoria Degeler, and Paul Groth. "Semantic Association Rule Learning from Time Series Data and
-   Knowledge Graphs." arXiv preprint arXiv:2310.07348 (2023).
+2. Erkan Karabulut, Victoria Degeler, and Paul Groth. 2023. Semantic Association
+   Rule Learning from Time Series Data and Knowledge Graphs. In Proceedings
+   of the 2nd International Workshop on Semantic Industrial Information Modelling
+   (SemIIM 2023) co-located with 22nd International Semantic Web Conference (ISWC
+   2023). 1–7.
 3. Fister Jr, Iztok, et al. "Time series numerical association rule mining variants in smart agriculture." Journal of
    Ambient Intelligence and Humanized Computing 14.12 (2023): 16853-16866.
 4. Stupan, Žiga, and Iztok Fister. "Niaarm: a minimalistic framework for numerical association rule mining." Journal of
@@ -114,7 +117,9 @@ of [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/our_ae_based_arm/o
 8. Sebastian Raschka. 2018. MLxtend: Providing machine learning and data science utilities and extensions to Python’s
    scientific computing stack. The Journal of Open Source Software 3, 24 (April
    2018). https://doi.org/10.21105/joss.00638
+9. Karabulut, Erkan, Victoria Degeler, and Paul Groth. "AE SemRL: Learning Semantic Association Rules with Autoencoders."
+   arXiv preprint arXiv:2403.18133 (2024). https://arxiv.org/abs/2403.18133.
 
 ### Contact
 
-Please send an email to the following address for your feedback and questions: [email is hidden for anonymity]
+Please send an email to the following address for your feedback and questions: e.karabulut@uva.nl.
