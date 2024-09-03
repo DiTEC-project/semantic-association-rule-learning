@@ -7,7 +7,7 @@
 This repository consists of a set of semantic association rule learning approaches from sensor data and knowledge
 graphs in IoT environments, which are listed below:
 
-- Our AE-based ARM approach [reference hidden for anonymity]
+- Our AE-based ARM approach [9]
 - Naive SEMantic Association Rule Learning (Naive SemRL) [2], implemented using MLxtend [8].
 - TS-NARM [3] (does not support semantic association rules, however, the original version is adapted to work with
   semantics), implemented using NiaARM [4] and NiaPy [5].
