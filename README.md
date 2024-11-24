@@ -1,4 +1,4 @@
-# Contextual and Holistic ARM for IoT (CHARM)
+# Aerial: Learning Semantic Association Rules from Internet of Things Data
 
 -------
 
@@ -7,7 +7,7 @@
 This repository consists of a set of semantic association rule learning approaches from sensor data and knowledge
 graphs in IoT environments, which are listed below:
 
-- Our AE-based ARM approach [9]
+- Aerial: Our AE-based ARM approach
 - Naive SEMantic Association Rule Learning (Naive SemRL) [2], implemented using MLxtend [8].
 - TS-NARM [3] (does not support semantic association rules, however, the original version is adapted to work with
   semantics), implemented using NiaARM [4] and NiaPy [5].
@@ -117,8 +117,6 @@ of [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/our_ae_based_arm/o
 8. Sebastian Raschka. 2018. MLxtend: Providing machine learning and data science utilities and extensions to Python’s
    scientific computing stack. The Journal of Open Source Software 3, 24 (April
    2018). https://doi.org/10.21105/joss.00638
-9. Karabulut, Erkan, Victoria Degeler, and Paul Groth. "AE SemRL: Learning Semantic Association Rules with Autoencoders."
-   arXiv preprint arXiv:2403.18133 (2024). https://arxiv.org/abs/2403.18133.
 
 ### Contact
 
