@@ -10,9 +10,9 @@ from src.preprocessing.semantic_enrichment import *
 from src.util.rule_quality import *
 
 
-class OurAEBasedARM:
+class Aerial:
     """
-    Implementation of our Autoencoder-based (AE-based) ARM method as part of the CHARM pipeline
+    Implementation of our Autoencoder-based (AE-based) ARM method as part of our proposed pipeline
     """
 
     def __init__(self, num_bins=10, num_neighbors=1, max_antecedents=2, similarity_threshold=0.8, noise_factor=0.5):

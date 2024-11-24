@@ -108,7 +108,7 @@ if __name__ == "__main__":
     stats = {"fpgrowth": {'rules': [], 'stats': []}, "hmine": {'rules': [], 'stats': []},
              "de": {'rules': [], 'stats': []}, "ga": {'rules': [], 'stats': []}, "pso": {'rules': [], 'stats': []},
              "lshade": {'rules': [], 'stats': []}, "jde": {'rules': [], 'stats': []},
-             "our_ae_based_arm": {'rules': [], 'stats': []}, "arm_ae": {'rules': [], 'stats': []}}
+             "aerial": {'rules': [], 'stats': []}, "arm_ae": {'rules': [], 'stats': []}}
 
     # run each of the algorithms "num_runs" time and calculate the average
     for i in range(num_runs):
@@ -183,8 +183,8 @@ if __name__ == "__main__":
         our_ae_based_arm_association_rules = our_ae_based_arm.reformat_rules(our_ae_based_arm_association_rules)
 
         if len(our_ae_based_arm_association_rules) > 0:
-            stats["our_ae_based_arm"]["rules"].append(our_ae_based_arm_association_rules)
-            stats["our_ae_based_arm"]["stats"].append(
+            stats["aerial"]["rules"].append(our_ae_based_arm_association_rules)
+            stats["aerial"]["stats"].append(
                 evaluate_rules(our_ae_based_arm_association_rules, ae_exec_time, ae_training_time) + [ae_coverage])
 
         # ARM-AE from Berteloot et al. (2023)
