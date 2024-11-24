@@ -78,7 +78,7 @@ contains the source code for our proposed AE-based ARM approach, as well as all 
 ## How to Reuse?
 
 The source code of our AE-based ARM is given in
-the [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/aerial/aerial.py) file. The
+the [aerial.py](semantic_rule_learning/src/algorithm/aerial/aerial.py) file. The
 file contains a method called `create_input_vectors()` which receives a knowledge graph in the form
 of [NetworkX](https://networkx.org/) graphs, and a transaction set in the form of array of arrays where each array
 contains items for a transaction. `generate_rules()` method is called to generate a set of semantic association rules.
@@ -90,7 +90,7 @@ It is a generic denoising Autoencoder implementation that has 3 layers for encod
 each layer is 4 times smaller than the previous layer, hence an under-complete Autoencoder. You can copy this file to
 your code base to use it as part of our AE-based ARM or create your own Autoencoder implementation, and call it
 inside `train()` method
-of [our_ae_based_arm.py](semantic_rule_learning/src/algorithm/aerial/aerial.py).
+of [aerial.py](semantic_rule_learning/src/algorithm/aerial/aerial.py).
 
 ### References:
 
