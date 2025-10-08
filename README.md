@@ -1,5 +1,8 @@
 # Aerial: Learning Semantic Association Rules from Internet of Things Data
 
+This repository includes the source code for the method and baselines described in the paper [Learning Semantic Association Rules from Internet of Things Data](https://journals.sagepub.com/doi/10.1177/29498732251377518), 
+published in the Neurosymbolic Artificial Intelligence Journal.
+
 -------
 
 ## About
@@ -91,6 +94,24 @@ each layer is 4 times smaller than the previous layer, hence an under-complete A
 your code base to use it as part of our AE-based ARM or create your own Autoencoder implementation, and call it
 inside `train()` method
 of [aerial.py](semantic_rule_learning/src/algorithm/aerial/aerial.py).
+
+## Citation:
+
+If you use Aerial in your work, please cite our paper as follows:
+
+```
+@article{doi:10.1177/29498732251377518,
+    author = {Erkan Karabulut and Paul Groth and Victoria Degeler},
+    title = {Learning Semantic Association Rules from Internet of Things Data},
+    journal = {Neurosymbolic Artificial Intelligence},
+    volume = {1},
+    year = {2025},
+    month = {September},
+    doi = {10.1177/29498732251377518},
+    code = {https://github.com/DiTEC-project/semantic-association-rule-learning},
+    URL = { https://doi.org/10.1177/29498732251377518}
+}
+```
 
 ### References:
 
